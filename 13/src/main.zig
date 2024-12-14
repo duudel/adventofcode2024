@@ -125,15 +125,8 @@ fn solve(machine: ClawMachine) ?struct { u16, u16 } {
                     "{} * ({}, {}) + {} * ({}, {}) = ({}, {}) : ({}, {})\n",
                     .{ a, A.x, A.y, b, B.x, B.y, Rx, Ry, X, Y },
                 );
-                //std.debug.assert(Rx == X);
-                //std.debug.assert(Ry == Y);
 
                 std.debug.print("A={}, B={}\n", .{ a, b });
-
-                //if (b > 100) {
-                //    // too many button presses for B
-                //    continue;
-                //}
 
                 return .{ @intCast(a), @intCast(b) };
             }
@@ -157,37 +150,37 @@ fn calculateFewestTokens(machines: []const ClawMachine) u32 {
     return tokens;
 }
 
-//test "example-1" {
-//    const input =
-//        \\Button A: X+94, Y+34
-//        \\Button B: X+22, Y+67
-//        \\Prize: X=8400, Y=5400
-//        \\
-//        \\Button A: X+26, Y+66
-//        \\Button B: X+67, Y+21
-//        \\Prize: X=12748, Y=12176
-//        \\
-//        \\Button A: X+17, Y+86
-//        \\Button B: X+84, Y+37
-//        \\Prize: X=7870, Y=6450
-//        \\
-//        \\Button A: X+69, Y+23
-//        \\Button B: X+27, Y+71
-//        \\Prize: X=18641, Y=10279
-//    ;
-//    const machines = try parse(std.testing.allocator, input);
-//    defer machines.deinit();
-//
-//    {
-//        const a, const b = solve(machines.items[0]).?;
-//        const tokens = a * 3 + b;
-//
-//        try std.testing.expectEqual(280, tokens);
-//    }
-//
-//    const total_tokens = calculateFewestTokens(machines.items);
-//    try std.testing.expectEqual(280 + 200, total_tokens);
-//}
+test "example-1" {
+    const input =
+        \\Button A: X+94, Y+34
+        \\Button B: X+22, Y+67
+        \\Prize: X=8400, Y=5400
+        \\
+        \\Button A: X+26, Y+66
+        \\Button B: X+67, Y+21
+        \\Prize: X=12748, Y=12176
+        \\
+        \\Button A: X+17, Y+86
+        \\Button B: X+84, Y+37
+        \\Prize: X=7870, Y=6450
+        \\
+        \\Button A: X+69, Y+23
+        \\Button B: X+27, Y+71
+        \\Prize: X=18641, Y=10279
+    ;
+    const machines = try parse(std.testing.allocator, input);
+    defer machines.deinit();
+
+    {
+        const a, const b = solve(machines.items[0]).?;
+        const tokens = a * 3 + b;
+
+        try std.testing.expectEqual(280, tokens);
+    }
+
+    const total_tokens = calculateFewestTokens(machines.items);
+    try std.testing.expectEqual(280 + 200, total_tokens);
+}
 
 fn fixStartingPosition(machines: []ClawMachine) void {
     for (0..machines.len) |i| {
@@ -195,12 +188,6 @@ fn fixStartingPosition(machines: []ClawMachine) void {
         m.prizePos.x += 10_000_000_000_000;
         m.prizePos.y += 10_000_000_000_000;
     }
-}
-
-fn lcm(comptime T: type, a: T, b: T) T {
-    const prod: u128 = @as(u128, @intCast(a)) * b;
-    const result = prod / std.math.gcd(a, b);
-    return @intCast(result);
 }
 
 fn solve2(machine: ClawMachine) ?struct { usize, usize } {
@@ -269,5 +256,5 @@ test "example-2" {
     fixStartingPosition(machines.items);
 
     const total_tokens = calculateFewestTokens2(machines.items);
-    try std.testing.expectEqual(280 + 200, total_tokens);
+    try std.testing.expectEqual(875318608908, total_tokens);
 }
