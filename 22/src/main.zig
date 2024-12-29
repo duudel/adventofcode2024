@@ -13,7 +13,7 @@ pub fn main() !void {
     const sequences = calculateSequences(alloc, seeds);
     defer alloc.free(sequences);
 
-    const result_2 = findMostBananas(alloc, seeds, sequences);
+    const result_2 = findMostBananas(alloc, sequences);
     std.debug.print("Most bananas {}\n", .{result_2});
 }
 
@@ -168,9 +168,10 @@ fn calculateSequences(alloc: std.mem.Allocator, seeds: []const u32) []const Seq 
             const changes = seq.changes[ch_index .. ch_index + 4];
             const key = changesKey(changes);
             const bananas = seq.bananas[ch_index + 4];
-            if (!seq.map.contains(key)) {
-                seq.map.put(key, bananas) catch @panic("OOM");
-            }
+            _ = seq.map.getOrPutValue(key, bananas) catch @panic("OOM");
+            //if (!seq.map.contains(key)) {
+            //    seq.map.put(key, bananas) catch @panic("OOM");
+            //}
         }
     }
     return sequences;
@@ -187,11 +188,11 @@ fn changesKey(changes: []const i8) u32 {
     return result;
 }
 
-fn findMostBananas(alloc: std.mem.Allocator, seeds: []const u32, sequences: []const Seq) usize {
+fn findMostBananas(alloc: std.mem.Allocator, sequences: []const Seq) usize {
     var memo = Memo.init(alloc);
     defer memo.deinit();
 
-    std.debug.print("{} buyers\n", .{seeds.len});
+    std.debug.print("{} buyers\n", .{sequences.len});
 
     var result: usize = 0;
     for (sequences, 0..) |seq, seq_i| {
@@ -199,22 +200,10 @@ fn findMostBananas(alloc: std.mem.Allocator, seeds: []const u32, sequences: []co
             const changes = seq.changes[ch_index .. ch_index + 4];
             const key = changesKey(changes);
 
-            if (memo.get(key)) |tot| {
-                //std.debug.print("found in memo {}\n", .{tot});
-                result = @max(result, tot);
-                continue;
-            }
+            if (memo.contains(key)) continue;
 
             var total: usize = 0;
-            for (seeds, sequences, 0..) |seed, sq, seq_index| {
-                _ = seed;
-                const seq_left = sequences.len - seq_index;
-                const max_bananas_left = seq_left * 9;
-                if (total + max_bananas_left < result) {
-                    //std.debug.print("Early out: {} < {}\n", .{ total + max_bananas_left, result });
-                    break;
-                }
-
+            for (sequences) |sq| {
                 if (sq.map.get(key)) |bananas| {
                     total += bananas;
                 }
@@ -223,9 +212,6 @@ fn findMostBananas(alloc: std.mem.Allocator, seeds: []const u32, sequences: []co
                 //    if (index + 4 >= sq.bananas.len) continue;
 
                 //    const bs = sq.bananas[index + 4];
-                //    _ = seed;
-                //    //if (changes[0] == -2 and changes[1] == 1 and changes[2] == -1)
-                //    //    std.debug.print("{}: Found {} bananas\n", .{ seed, bs });
                 //    total += bs;
                 //}
             }
@@ -268,6 +254,6 @@ test "p2 - example" {
     const sequences = calculateSequences(std.testing.allocator, seeds);
     defer freeSequences(sequences);
 
-    const result = findMostBananas(std.testing.allocator, seeds, sequences);
+    const result = findMostBananas(std.testing.allocator, sequences);
     try std.testing.expectEqual(23, result);
 }
